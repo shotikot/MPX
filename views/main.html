@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="/index.js"></script>
+    <link rel="stylesheet" href="/index.css" />
+    <title>MPX</title>
+    <script>
+      $(function() {
+        const form = $("#form");
+        form.submit(e => {
+          e.preventDefault();
+          const url = $("#url").val();
+          console.log(url);
+          $("#convert").toggleClass("loading");
+          $("#convert").toggleClass("go");
+          $("#download-container").css("display", "none");
+          $.ajax({
+            url: "/convert",
+            method: "POST",
+            data: {
+              url: url
+            },
+            success: r => {
+              $("#download-button").attr("data-url", r.url);
+              $(".title").text(`${r.title}`);
+              $("#thumbnail").attr(
+                "src",
+                `https://i.ytimg.com/vi/${r.id}/hqdefault.jpg`
+              );
+              $("#thumbnail").on("load", () => {
+                $("#download-container").css("display", "block");
+                $("#url").val("");
+              });
+              $(".thumbnail-container").css("display", "block");
+              $("#convert").toggleClass("loading");
+              $("#convert").toggleClass("go");
+            },
+            error: (xhr, ts, err) => {
+              try {
+                const response = JSON.parse(xhr.responseText);
+                $(".error").text(response.message);
+                $("#convert").toggleClass("loading");
+                $("#convert").toggleClass("go");
+                $("#download-container").css("display", "none");
+                setTimeout(() => {
+                  $(".error").text("");
+                }, 3000);
+              } catch (err) {
+                $(".error").text(xhr.responseText);
+                $("#convert").toggleClass("loading");
+                $("#convert").toggleClass("go");
+                $("#download-container").css("display", "none");
+                setTimeout(() => {
+                  $(".error").text("");
+                }, 3000);
+              }
+            }
+          });
+        });
+        $("#download-button").click(e => {
+          e.preventDefault();
+          let url = $(e.target).attr("data-url");
+          alert(url);
+          window.location.href = `/download?video=${url}`;
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <header>
+      <div class="img-container hidden">
+        <img src="/logo.png" class="logo" style="opacity: 1" />
+        <img src="/logo-2.png" class="logo-2" style="opacity: 0" />
+      </div>
+    </header>
+    <div class="url-container" id="url-container">
+      <form action="/" id="form" method="post">
+        <input
+          type="text"
+          autocomplete="off"
+          name="url"
+          id="url"
+          class="url"
+          placeholder="http://youtube.com/watch?v=SomeURL"
+        />
+        <button type="submit" id="convert" class="go">&nbsp;</button>
+      </form>
+      <p class="error"></p>
+    </div>
+    <div
+      id="download-container"
+      class="download-container"
+      style="display: none;"
+    >
+      <div class="thumbnail-container" style="display: none">
+        <img src alt="Thumbnail" class="thumbnail" id="thumbnail" />
+      </div>
+      <img src="/download.png" id="download-button" />
+      <div id="title">
+        <p class="title"></p>
+      </div>
+    </div>
+
+    <script>
+      $("body").addClass("night-body");
+      $("#url").css("border-color", "#fc8123");
+      $("#convert").css("background-color", "#fc8123");
+      $(".title").css("color", "#ffffff");
+      $("#form").css("background-color", "#14171b");
+      $(".error").css("color", "#ffffff");
+      $(".img-container").toggleClass("hidden");
+    </script>
+  </body>
+</html>
